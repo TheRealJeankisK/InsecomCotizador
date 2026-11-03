@@ -1,0 +1,58 @@
+@model List<Producto>
+@{
+    ViewData["Title"] = "Productos";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 titulo-pagina">Productos</h1>
+        <span class="subtitulo">Cada producto tiene su receta: los materiales que lleva una unidad.</span>
+    </div>
+    <a asp-action="Crear" class="btn btn-app"><i class="bi bi-plus-lg me-1"></i>Nuevo producto</a>
+</div>
+
+<div class="tarjeta p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla">
+            <thead>
+                <tr>
+                    <th class="ps-4">Producto</th>
+                    <th>Tipo</th>
+                    <th class="text-center">Materiales en la receta</th>
+                    <th class="text-end pe-4">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-semibold">@p.Nombre</div>
+                            <div class="small subtitulo">@p.Descripcion</div>
+                        </td>
+                        <td><span class="badge text-bg-light">@p.Tipo</span></td>
+                        <td class="text-center">
+                            @if (p.Receta.Count == 0)
+                            {
+                                <span class="badge text-bg-warning">Sin receta</span>
+                            }
+                            else
+                            {
+                                @p.Receta.Count
+                            }
+                        </td>
+                        <td class="text-end pe-4 text-nowrap">
+                            <a asp-action="Receta" asp-route-id="@p.Id" class="btn btn-sm btn-outline-secondary" title="Receta"><i class="bi bi-list-check"></i> Receta</a>
+                            <a asp-action="Editar" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                            <partial name="_BotonEliminar" model="@(("Eliminar", p.Id, p.Nombre))" />
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="4" class="text-center subtitulo py-4">No hay productos registrados.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

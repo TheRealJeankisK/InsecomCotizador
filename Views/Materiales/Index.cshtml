@@ -1,0 +1,53 @@
+@model List<Material>
+@{
+    ViewData["Title"] = "Materiales";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 titulo-pagina">Materiales (inventario)</h1>
+        <span class="subtitulo">Stock y costo en bodega. En "Precios" se registra cuánto cobra cada proveedor.</span>
+    </div>
+    <a asp-action="Crear" class="btn btn-app"><i class="bi bi-plus-lg me-1"></i>Nuevo material</a>
+</div>
+
+<div class="tarjeta p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla">
+            <thead>
+                <tr>
+                    <th class="ps-4">Material</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Stock</th>
+                    <th class="text-end">Costo unitario</th>
+                    <th class="text-center">Proveedores</th>
+                    <th class="text-end pe-4">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-semibold">@m.Nombre</td>
+                        <td>@m.Categoria?.Nombre</td>
+                        <td class="text-end">
+                            @* sin stock en rojo *@
+                            <span class="@(m.Stock == 0 ? "text-danger fw-bold" : "")">@m.Stock.ToString("0.##") @m.Unidad</span>
+                        </td>
+                        <td class="text-end">$@m.CostoUnitario.ToString("N2")</td>
+                        <td class="text-center">@m.Precios.Count</td>
+                        <td class="text-end pe-4 text-nowrap">
+                            <a asp-action="Precios" asp-route-id="@m.Id" class="btn btn-sm btn-outline-secondary" title="Precios"><i class="bi bi-cash-coin"></i> Precios</a>
+                            <a asp-action="Editar" asp-route-id="@m.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                            <partial name="_BotonEliminar" model="@(("Eliminar", m.Id, m.Nombre))" />
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="6" class="text-center subtitulo py-4">No hay materiales registrados.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

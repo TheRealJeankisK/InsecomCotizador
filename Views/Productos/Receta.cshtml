@@ -1,0 +1,123 @@
+@model Producto
+@{
+    ViewData["Title"] = "Receta de " + Model.Nombre;
+    // costo de 1 unidad con el costo de bodega (solo informativo, el calculo completo es el core)
+    decimal costoUnidad = 0;
+    foreach (var r in Model.Receta)
+    {
+        costoUnidad += r.CantidadPorUnidad * r.Material!.CostoUnitario;
+    }
+}
+
+<a asp-action="Index" class="btn btn-link px-0 mb-2"><i class="bi bi-arrow-left"></i> Volver a productos</a>
+<h1 class="h3 titulo-pagina">Receta: @Model.Nombre</h1>
+<p class="subtitulo mb-4">@Model.Tipo · Materiales que lleva <b>una unidad</b> del producto.</p>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="tarjeta p-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 tabla">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Material</th>
+                            <th class="text-end">Cantidad</th>
+                            <th class="text-end">Costo bodega</th>
+                            <th class="text-end">Subtotal</th>
+                            <th class="pe-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Receta)
+                        {
+                            <tr>
+                                <td class="ps-4">@r.Material!.Nombre</td>
+                                <td class="text-end">@r.CantidadPorUnidad.ToString("0.##") @r.Material.Unidad</td>
+                                <td class="text-end">$@r.Material.CostoUnitario.ToString("N2")</td>
+                                <td class="text-end">$@((r.CantidadPorUnidad * r.Material.CostoUnitario).ToString("N2"))</td>
+                                <td class="text-end pe-4">
+                                    <form asp-action="QuitarMaterial" asp-route-id="@r.Id" method="post" class="d-inline">
+                                        <button class="btn btn-sm btn-outline-danger" title="Quitar"><i class="bi bi-x-lg"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Receta.Any())
+                        {
+                            <tr><td colspan="5" class="text-center subtitulo py-4">La receta está vacía. Agrega materiales con el formulario.</td></tr>
+                        }
+                    </tbody>
+                    @if (Model.Receta.Any())
+                    {
+                        <tfoot>
+                            <tr class="fw-bold">
+                                <td class="ps-4" colspan="3">Costo de 1 unidad (con costo de bodega)</td>
+                                <td class="text-end">$@costoUnidad.ToString("N2")</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="tarjeta">
+            <h2 class="h6 fw-semibold mb-3">Agregar material</h2>
+            @if (((Microsoft.AspNetCore.Mvc.Rendering.SelectList)ViewBag.Categorias).Any())
+            {
+                <form asp-action="AgregarMaterial" method="post">
+                    <input type="hidden" name="ProductoId" value="@Model.Id" />
+                    @* dropdown 1: categoria (no se manda, solo sirve para filtrar) *@
+                    <div class="mb-3">
+                        <label class="form-label" for="CategoriaId">Categoría</label>
+                        <select id="CategoriaId" class="form-select" asp-items="ViewBag.Categorias">
+                            <option value="">Selecciona…</option>
+                        </select>
+                    </div>
+                    @* dropdown 2: materiales de esa categoria (se llena con fetch) *@
+                    <div class="mb-3">
+                        <label class="form-label" for="MaterialId">Material</label>
+                        <select name="MaterialId" id="MaterialId" class="form-select" required disabled>
+                            <option value="">Primero elige una categoría</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="CantidadPorUnidad">Cantidad por unidad</label>
+                        <input type="number" step="0.01" min="0.01" name="CantidadPorUnidad" id="CantidadPorUnidad" class="form-control" required />
+                        <div class="form-text">Si el material ya está en la receta, se actualiza la cantidad.</div>
+                    </div>
+                    <button class="btn btn-app w-100"><i class="bi bi-plus-lg me-1"></i>Agregar</button>
+                </form>
+            }
+            else
+            {
+                <p class="subtitulo mb-0">Primero registra categorías y materiales en <a asp-controller="Materiales" asp-action="Crear">Materiales</a>.</p>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // dropdown dependiente: al cambiar la categoria pido sus materiales al controlador
+        const categoria = document.getElementById('CategoriaId');
+        const material = document.getElementById('MaterialId');
+
+        categoria?.addEventListener('change', async () => {
+            material.innerHTML = '<option value="">Selecciona…</option>';
+            material.disabled = true;
+            if (!categoria.value) return;  // sin categoria no cargo nada
+
+            const respuesta = await fetch('@Url.Action("MaterialesPorCategoria")?categoriaId=' + categoria.value);
+            const materiales = await respuesta.json();
+
+            // agrego una opcion por cada material
+            for (const m of materiales) {
+                material.add(new Option(m.nombre, m.id));
+            }
+            material.disabled = false;
+        });
+    </script>
+}

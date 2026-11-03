@@ -1,0 +1,66 @@
+@model Cliente
+@{
+    var esNuevo = Model.Id == 0;
+    ViewData["Title"] = esNuevo ? "Nuevo cliente" : "Editar cliente";
+    var sectores = new[] { "Petróleo", "Minería", "Energía y subestaciones", "Telecomunicaciones", "Infraestructura", "Manufactura", "Otro" };
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="tarjeta">
+            <h1 class="h4 titulo-pagina mb-4">@ViewData["Title"]</h1>
+            <form asp-action="Guardar" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Id" />
+
+                <div class="mb-3">
+                    <label asp-for="RazonSocial" class="form-label"></label>
+                    <input asp-for="RazonSocial" class="form-control" />
+                    <span asp-validation-for="RazonSocial" class="text-danger small"></span>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="RUC" class="form-label"></label>
+                        <input asp-for="RUC" class="form-control" maxlength="13" />
+                        <span asp-validation-for="RUC" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Sector" class="form-label"></label>
+                        <select asp-for="Sector" class="form-select">
+                            <option value="">Selecciona…</option>
+                            @foreach (var s in sectores)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Sector" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Contacto" class="form-label"></label>
+                    <input asp-for="Contacto" class="form-control" placeholder="Persona de contacto" />
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Telefono" class="form-label"></label>
+                        <input asp-for="Telefono" class="form-control" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Correo" class="form-label"></label>
+                        <input asp-for="Correo" class="form-control" />
+                        <span asp-validation-for="Correo" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-app"><i class="bi bi-save me-1"></i>Guardar</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

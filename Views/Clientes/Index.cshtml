@@ -1,0 +1,56 @@
+@model List<Cliente>
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 titulo-pagina">Clientes</h1>
+        <span class="subtitulo">@Model.Count cliente(s)</span>
+    </div>
+    <a asp-action="Crear" class="btn btn-app"><i class="bi bi-plus-lg me-1"></i>Nuevo cliente</a>
+</div>
+
+@* buscador (va por GET para que se vea en la url) *@
+<form asp-action="Index" method="get" class="d-flex gap-2 mb-3" style="max-width:420px">
+    <input type="text" name="buscar" value="@ViewBag.Buscar" class="form-control" placeholder="Buscar por razón social o RUC" />
+    <button class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+</form>
+
+<div class="tarjeta p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla">
+            <thead>
+                <tr>
+                    <th class="ps-4">Razón social</th>
+                    <th>RUC</th>
+                    <th>Sector</th>
+                    <th>Contacto</th>
+                    <th class="text-end pe-4">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-semibold">@c.RazonSocial</td>
+                        <td>@c.RUC</td>
+                        <td><span class="badge text-bg-light">@c.Sector</span></td>
+                        <td>
+                            @c.Contacto
+                            <div class="small subtitulo">@c.Telefono @c.Correo</div>
+                        </td>
+                        <td class="text-end pe-4 text-nowrap">
+                            <a asp-action="Editar" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                            <partial name="_BotonEliminar" model="@(("Eliminar", c.Id, c.RazonSocial))" />
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="5" class="text-center subtitulo py-4">No hay clientes registrados.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,44 @@
+@model Producto
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Nuevo producto" : "Editar producto";
+    var tipos = new[] { "Tablero NEMA 3R", "Tablero NEMA 12", "Gabinete NEMA 3R", "Centro de control de motores (MCC)", "Panel de control / PLC", "Tablero de distribución", "Junction box", "Otro" };
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="tarjeta">
+            <h1 class="h4 titulo-pagina mb-4">@ViewData["Title"]</h1>
+            <form asp-action="Guardar" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div class="mb-3">
+                    <label asp-for="Nombre" class="form-label"></label>
+                    <input asp-for="Nombre" class="form-control" placeholder="Ej: Tablero de control 60x40" />
+                    <span asp-validation-for="Nombre" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Tipo" class="form-label"></label>
+                    <select asp-for="Tipo" class="form-select">
+                        <option value="">Selecciona…</option>
+                        @foreach (var t in tipos)
+                        {
+                            <option value="@t">@t</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Tipo" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Descripcion" class="form-label"></label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-app"><i class="bi bi-save me-1"></i>Guardar</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

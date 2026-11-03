@@ -1,0 +1,43 @@
+@model List<Categoria>
+@{
+    ViewData["Title"] = "Categorías";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 titulo-pagina">Categorías de materiales</h1>
+        <span class="subtitulo">Sirven para ordenar el inventario y para filtrar materiales en la receta.</span>
+    </div>
+    <a asp-action="Crear" class="btn btn-app"><i class="bi bi-plus-lg me-1"></i>Nueva categoría</a>
+</div>
+
+<div class="tarjeta p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla">
+            <thead>
+                <tr>
+                    <th class="ps-4">Nombre</th>
+                    <th class="text-center">Materiales</th>
+                    <th class="text-end pe-4">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td class="ps-4 fw-semibold">@p.Nombre</td>
+                        <td class="text-center">@p.Materiales.Count</td>
+                        <td class="text-end pe-4 text-nowrap">
+                            <a asp-action="Editar" asp-route-id="@p.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                            <partial name="_BotonEliminar" model="@(("Eliminar", p.Id, p.Nombre))" />
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="3" class="text-center subtitulo py-4">No hay categorías registradas.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

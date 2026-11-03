@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "Inicio";
+    // tarjetas del panel: titulo, cantidad, icono, controlador
+    var items = new[]
+    {
+        ("Clientes", (int)ViewBag.Clientes, "bi-building", "Clientes"),
+        ("Vendedores", (int)ViewBag.Vendedores, "bi-person-badge", "Vendedores"),
+        ("Productos", (int)ViewBag.Productos, "bi-box-seam", "Productos"),
+        ("Materiales", (int)ViewBag.Materiales, "bi-boxes", "Materiales"),
+        ("Proveedores", (int)ViewBag.Proveedores, "bi-truck", "Proveedores"),
+        ("Reglas de comisión", (int)ViewBag.Reglas, "bi-percent", "ReglasComision")
+    };
+}
+
+<h1 class="h3 titulo-pagina">Panel de administración</h1>
+<p class="subtitulo mb-4">Aquí se registran los datos que usa el cálculo de cotizaciones.</p>
+
+@if ((int)ViewBag.SinStock > 0)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        Hay @ViewBag.SinStock material(es) sin stock. <a asp-controller="Materiales" asp-action="Index">Ver inventario</a>
+    </div>
+}
+
+<div class="panel-grid">
+    @foreach (var (titulo, cantidad, icono, controlador) in items)
+    {
+        <a class="tarjeta panel-item" asp-controller="@controlador" asp-action="Index">
+            <span class="icono-circulo"><i class="bi @icono"></i></span>
+            <span>
+                <span class="panel-numero d-block">@cantidad</span>
+                <span class="subtitulo">@titulo</span>
+            </span>
+        </a>
+    }
+</div>

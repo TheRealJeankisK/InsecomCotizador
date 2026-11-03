@@ -1,0 +1,52 @@
+@model List<ReglaComision>
+@{
+    ViewData["Title"] = "Reglas de comisión";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 titulo-pagina">Reglas de comisión</h1>
+        <span class="subtitulo">El porcentaje depende del total aprobado del vendedor en el mes.</span>
+    </div>
+    <a asp-action="Crear" class="btn btn-app"><i class="bi bi-plus-lg me-1"></i>Nueva regla</a>
+</div>
+
+<div class="tarjeta p-0" style="max-width:720px">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla">
+            <thead>
+                <tr>
+                    <th class="ps-4">Total vendido en el mes</th>
+                    <th class="text-center">Comisión</th>
+                    <th class="text-end pe-4">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td class="ps-4">
+                            @if (r.MontoMaximo == null)
+                            {
+                                <span>Desde $@r.MontoMinimo.ToString("N2")</span>
+                            }
+                            else
+                            {
+                                <span>$@r.MontoMinimo.ToString("N2") hasta menos de $@r.MontoMaximo?.ToString("N2")</span>
+                            }
+                        </td>
+                        <td class="text-center fw-semibold">@r.Porcentaje.ToString("0.##") %</td>
+                        <td class="text-end pe-4 text-nowrap">
+                            <a asp-action="Editar" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
+                            <partial name="_BotonEliminar" model="@(("Eliminar", r.Id, "esta regla"))" />
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="3" class="text-center subtitulo py-4">No hay reglas registradas.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
