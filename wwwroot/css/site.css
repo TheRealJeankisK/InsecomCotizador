@@ -1,10 +1,17 @@
 /* colores de la app (se cambian aqui y aplican en todo lado) */
+/* son los de insecom: casi negro de su web y los 2 verdes del rayo del logo */
 :root {
-  --color-primario: #0d3b66;
-  --color-primario-oscuro: #082a4a;
-  --color-acento: #f59e0b;
-  --color-fondo: #f3f5f8;
-  --color-texto-suave: #6b7280;
+  --color-primario: #111827;
+  --color-primario-oscuro: #030712;
+  --color-acento: #9fcd5b;
+  --color-verde: #4f9a3c;
+  --color-verde-claro: #eef6e6;
+  --color-fondo: #f3f4f6;
+  --color-texto-suave: #4b5563;
+
+  /* links y botones de bootstrap con el verde de la marca */
+  --bs-link-color-rgb: 61, 127, 47;
+  --bs-link-hover-color-rgb: 17, 24, 39;
   --radio: 14px;
 }
 
@@ -84,8 +91,8 @@ body {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: #e6eef6;
-  color: var(--color-primario);
+  background: var(--color-verde-claro);
+  color: var(--color-verde);
   font-size: 1.8rem;
   display: flex;
   align-items: center;
@@ -149,8 +156,8 @@ body {
 
 .form-control:focus,
 .form-select:focus {
-  border-color: var(--color-primario);
-  box-shadow: 0 0 0 0.2rem rgba(13, 59, 102, 0.2);
+  border-color: var(--color-verde);
+  box-shadow: 0 0 0 0.2rem rgba(79, 154, 60, 0.25);
 }
 
 .footer {
@@ -171,8 +178,9 @@ body {
   padding: 1.5rem 1.75rem;
   border-radius: var(--radio);
   color: #fff;
-  background: linear-gradient(135deg, var(--color-primario), #1d6fa5);
-  box-shadow: 0 8px 24px rgba(13, 59, 102, 0.25);
+  background: linear-gradient(135deg, var(--color-primario-oscuro), #1f2937);
+  border-left: 6px solid var(--color-acento);
+  box-shadow: 0 8px 24px rgba(3, 7, 18, 0.25);
 }
 
 .chip {
@@ -188,7 +196,7 @@ body {
 
 .chip--boton:hover {
   background: var(--color-acento);
-  color: #fff;
+  color: var(--color-primario-oscuro);
 }
 
 /* barra de progreso simple */
@@ -202,9 +210,29 @@ body {
 .barra__relleno {
   height: 100%;
   border-radius: 999px;
-  background: var(--color-primario);
+  background: linear-gradient(90deg, var(--color-verde), var(--color-acento));
 }
 
 .barra__relleno--verde {
-  background: #16a34a;
+  background: var(--color-verde);
+}
+
+/* logo en la barra */
+.logo-marca {
+  height: 30px;
+  margin-right: 0.35rem;
+}
+
+/* boton secundario de bootstrap con los colores de la marca */
+.btn-outline-primary {
+  --bs-btn-color: var(--color-primario);
+  --bs-btn-border-color: #d1d5db;
+  --bs-btn-hover-bg: var(--color-primario);
+  --bs-btn-hover-border-color: var(--color-primario);
+  --bs-btn-active-bg: var(--color-primario-oscuro);
+}
+
+/* linea verde abajo de la barra */
+.navbar-app {
+  border-bottom: 3px solid var(--color-acento);
 }
