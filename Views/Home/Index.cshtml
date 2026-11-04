@@ -1,29 +1,36 @@
+@model PanelViewModel
 @{
     ViewData["Title"] = "Inicio";
     // tarjetas del panel: titulo, cantidad, icono, controlador
     var items = new[]
     {
-        ("Clientes", (int)ViewBag.Clientes, "bi-building", "Clientes"),
-        ("Vendedores", (int)ViewBag.Vendedores, "bi-person-badge", "Vendedores"),
-        ("Productos", (int)ViewBag.Productos, "bi-box-seam", "Productos"),
-        ("Materiales", (int)ViewBag.Materiales, "bi-boxes", "Materiales"),
-        ("Proveedores", (int)ViewBag.Proveedores, "bi-truck", "Proveedores"),
-        ("Reglas de comisión", (int)ViewBag.Reglas, "bi-percent", "ReglasComision")
+        ("Clientes", Model.Clientes, "bi-building", "Clientes"),
+        ("Vendedores", Model.Vendedores, "bi-person-badge", "Vendedores"),
+        ("Productos", Model.Productos, "bi-box-seam", "Productos"),
+        ("Materiales", Model.Materiales, "bi-boxes", "Materiales"),
+        ("Proveedores", Model.Proveedores, "bi-truck", "Proveedores"),
+        ("Reglas de comisión", Model.Reglas, "bi-percent", "ReglasComision")
     };
+    int listos = Model.Pasos.Count(p => p.Listo);
+    int avance = Model.Pasos.Count == 0 ? 0 : listos * 100 / Model.Pasos.Count;
+    decimal valorMax = Model.PorCategoria.Any() ? Model.PorCategoria.Max(c => c.Valor) : 0;
 }
 
-<h1 class="h3 titulo-pagina">Panel de administración</h1>
-<p class="subtitulo mb-4">Aquí se registran los datos que usa el cálculo de cotizaciones.</p>
-
-@if ((int)ViewBag.SinStock > 0)
-{
-    <div class="alert alert-warning">
-        <i class="bi bi-exclamation-triangle-fill me-1"></i>
-        Hay @ViewBag.SinStock material(es) sin stock. <a asp-controller="Materiales" asp-action="Index">Ver inventario</a>
+@* cabecera con saludo y parametros *@
+<div class="panel-banner mb-4">
+    <div>
+        <h1 class="h3 mb-1">Hola, @User.Identity?.Name 👋</h1>
+        <p class="mb-0 opacity-75">Panel de administración · aquí se registran los datos que usa el cálculo de cotizaciones.</p>
     </div>
-}
+    <div class="d-flex flex-wrap gap-2">
+        <span class="chip"><i class="bi bi-graph-up-arrow me-1"></i>Margen @Model.Margen.ToString("0.##") %</span>
+        <span class="chip"><i class="bi bi-receipt me-1"></i>IVA @Model.IVA.ToString("0.##") %</span>
+        <a class="chip chip--boton" asp-controller="Configuracion" asp-action="Index"><i class="bi bi-gear me-1"></i>Cambiar</a>
+    </div>
+</div>
 
-<div class="panel-grid">
+@* contadores *@
+<div class="panel-grid mb-4">
     @foreach (var (titulo, cantidad, icono, controlador) in items)
     {
         <a class="tarjeta panel-item" asp-controller="@controlador" asp-action="Index">
@@ -34,4 +41,134 @@
             </span>
         </a>
     }
+</div>
+
+<div class="row g-4">
+    @* columna izquierda *@
+    <div class="col-lg-8 d-flex flex-column gap-4">
+
+        @* valor del inventario por categoria *@
+        <div class="tarjeta">
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+                <div>
+                    <h2 class="h6 fw-semibold mb-1"><i class="bi bi-boxes me-1"></i>Inventario en bodega</h2>
+                    <span class="subtitulo small">Stock × costo unitario, por categoría</span>
+                </div>
+                <div class="text-end">
+                    <span class="subtitulo small d-block">Valor total</span>
+                    <span class="panel-numero">$@Model.ValorInventario.ToString("N2")</span>
+                </div>
+            </div>
+            @if (!Model.PorCategoria.Any())
+            {
+                <p class="subtitulo mb-0">Todavía no hay materiales. <a asp-controller="Materiales" asp-action="Crear">Registrar el primero</a></p>
+            }
+            @foreach (var c in Model.PorCategoria)
+            {
+                var ancho = valorMax == 0 ? 0 : c.Valor * 100 / valorMax;
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-semibold">@c.Nombre <span class="subtitulo fw-normal">· @c.Materiales material(es)</span></span>
+                        <span>$@c.Valor.ToString("N2")</span>
+                    </div>
+                    <div class="barra"><div class="barra__relleno" style="width:@ancho.ToString("0.#")%"></div></div>
+                </div>
+            }
+        </div>
+
+        @* costo de cada producto segun su receta *@
+        <div class="tarjeta p-0">
+            <div class="p-4 pb-2">
+                <h2 class="h6 fw-semibold mb-1"><i class="bi bi-box-seam me-1"></i>Costo de materiales por producto</h2>
+                <span class="subtitulo small">1 unidad, con el costo de bodega (el core luego compara con los proveedores)</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 tabla">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Producto</th>
+                            <th class="text-center">Materiales</th>
+                            <th class="text-end pe-4">Costo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.CostosProductos)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <a class="fw-semibold text-decoration-none" asp-controller="Productos" asp-action="Receta" asp-route-id="@p.Id">@p.Nombre</a>
+                                    <span class="subtitulo small d-block">@p.Tipo</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (p.NumMateriales == 0)
+                                    {
+                                        <span class="badge text-bg-warning">Sin receta</span>
+                                    }
+                                    else
+                                    {
+                                        @p.NumMateriales
+                                    }
+                                </td>
+                                <td class="text-end pe-4 fw-semibold">$@p.Costo.ToString("N2")</td>
+                            </tr>
+                        }
+                        @if (!Model.CostosProductos.Any())
+                        {
+                            <tr><td colspan="3" class="text-center subtitulo py-4">No hay productos registrados.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* columna derecha *@
+    <div class="col-lg-4 d-flex flex-column gap-4">
+
+        @* pasos para poder cotizar *@
+        <div class="tarjeta">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="h6 fw-semibold mb-0"><i class="bi bi-list-check me-1"></i>Listo para cotizar</h2>
+                <span class="fw-semibold">@avance %</span>
+            </div>
+            <div class="barra mb-3"><div class="barra__relleno barra__relleno--verde" style="width:@avance%"></div></div>
+            <ul class="list-unstyled mb-0">
+                @foreach (var paso in Model.Pasos)
+                {
+                    <li class="d-flex align-items-center gap-2 py-1">
+                        @if (paso.Listo)
+                        {
+                            <i class="bi bi-check-circle-fill text-success"></i>
+                            <span>@paso.Texto</span>
+                        }
+                        else
+                        {
+                            <i class="bi bi-circle subtitulo"></i>
+                            <a asp-controller="@paso.Controlador" asp-action="Index">@paso.Texto</a>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+
+        @* materiales con poco stock *@
+        <div class="tarjeta">
+            <h2 class="h6 fw-semibold mb-3"><i class="bi bi-exclamation-triangle me-1"></i>Stock bajo</h2>
+            @if (!Model.StockBajo.Any())
+            {
+                <p class="subtitulo mb-0"><i class="bi bi-check2 me-1"></i>Todo el inventario tiene stock suficiente.</p>
+            }
+            @foreach (var m in Model.StockBajo)
+            {
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                    <span>
+                        <span class="d-block">@m.Nombre</span>
+                        <span class="subtitulo small">@m.Categoria?.Nombre</span>
+                    </span>
+                    <span class="badge @(m.Stock == 0 ? "text-bg-danger" : "text-bg-warning")">@m.Stock.ToString("0.##") @m.Unidad</span>
+                </div>
+            }
+            <p class="subtitulo small mt-2 mb-0">Si no alcanza el stock, el core compra al proveedor más barato.</p>
+        </div>
+    </div>
 </div>
