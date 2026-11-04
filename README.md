@@ -4,6 +4,8 @@ Proyecto de la materia **Ingeniería Web (ISWZ3101)** de la UDLA: sistema de ges
 
 El **core** (Progreso 2) calcula el precio sugerido de una cotización a partir de la receta de materiales de cada producto, el inventario y los precios de los proveedores, y luego la comisión del vendedor. Esta primera parte es la **administración** que alimenta ese cálculo.
 
+**Demo en línea:** https://insecomcotizador.onrender.com (plan gratis de Render: la primera carga tarda ~1 min si estaba dormida).
+
 ## Qué incluye (Progreso 1: admin)
 
 | Módulo | Qué se puede hacer |
