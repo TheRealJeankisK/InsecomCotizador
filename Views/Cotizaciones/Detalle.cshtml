@@ -1,0 +1,230 @@
+@model Cotizacion
+@{
+    ViewData["Title"] = "Cotización #" + Model.Id;
+    // solo viene cuando es borrador (calculo en vivo del core)
+    var r = ViewBag.Resultado as ResultadoCotizacion;
+    bool esBorrador = Model.Estado == EstadoCotizacion.Borrador;
+}
+
+<a asp-action="Index" class="btn btn-link px-0 mb-2"><i class="bi bi-arrow-left"></i> Volver a cotizaciones</a>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+    <div>
+        <h1 class="h3 titulo-pagina mb-1">Cotización #@Model.Id <partial name="_Estado" model="Model.Estado" /></h1>
+        <span class="subtitulo">
+            <i class="bi bi-building me-1"></i>@Model.Cliente?.RazonSocial ·
+            <i class="bi bi-person-badge me-1"></i>@Model.Vendedor?.Nombre ·
+            <i class="bi bi-calendar me-1"></i>@Model.Fecha.ToString("dd/MM/yyyy")
+        </span>
+    </div>
+</div>
+
+<div class="row g-4">
+    @* ========== izquierda: productos y desglose ========== *@
+    <div class="col-lg-8 d-flex flex-column gap-4">
+
+        @if (esBorrador)
+        {
+            @* formulario para agregar productos *@
+            <div class="tarjeta">
+                <h2 class="h6 fw-semibold mb-3"><i class="bi bi-plus-circle me-1"></i>Agregar producto</h2>
+                <form asp-action="AgregarProducto" method="post" class="row g-2 align-items-end">
+                    <input type="hidden" name="cotizacionId" value="@Model.Id" />
+                    <div class="col-md-7">
+                        <label class="form-label" for="productoId">Producto</label>
+                        <select name="productoId" id="productoId" class="form-select" asp-items="ViewBag.Productos" required>
+                            <option value="">Selecciona…</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="cantidad">Cantidad</label>
+                        <input type="number" name="cantidad" id="cantidad" min="1" max="10000" value="1" class="form-control" required />
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-app w-100"><i class="bi bi-plus-lg"></i></button>
+                    </div>
+                </form>
+            </div>
+
+            @* desglose del core: de donde sale cada material *@
+            @foreach (var p in r!.Productos)
+            {
+                <div class="tarjeta p-0">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-4 pb-2">
+                        <div>
+                            <h2 class="h6 fw-semibold mb-0">@p.Nombre × @p.Cantidad</h2>
+                            <span class="subtitulo small">Costo $@p.Costo.ToString("N2") · precio sugerido por unidad $@p.PrecioUnitario.ToString("N2") (sin IVA)</span>
+                        </div>
+                        <form asp-action="QuitarProducto" asp-route-id="@p.DetalleId" method="post">
+                            <button class="btn btn-sm btn-outline-danger" title="Quitar"><i class="bi bi-x-lg"></i> Quitar</button>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 tabla small">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Material</th>
+                                    <th class="text-end">Necesito</th>
+                                    <th class="text-end">De bodega</th>
+                                    <th class="text-end">A comprar</th>
+                                    <th>Proveedor</th>
+                                    <th class="text-end pe-4">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var m in p.Materiales)
+                                {
+                                    <tr>
+                                        <td class="ps-4">@m.Nombre</td>
+                                        <td class="text-end">@m.Necesito.ToString("0.##") @m.Unidad</td>
+                                        <td class="text-end">
+                                            @m.DeBodega.ToString("0.##")
+                                            <span class="subtitulo d-block">× $@m.CostoBodega.ToString("N2")</span>
+                                        </td>
+                                        <td class="text-end">
+                                            @if (m.AComprar > 0)
+                                            {
+                                                <span class="text-warning-emphasis fw-semibold">@m.AComprar.ToString("0.##")</span>
+                                                <span class="subtitulo d-block">× $@m.PrecioProveedor.ToString("N2")</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="subtitulo">—</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (m.AComprar > 0 && m.Proveedor != null)
+                                            {
+                                                @m.Proveedor <span class="subtitulo d-block">@m.DiasEntrega días</span>
+                                            }
+                                            else if (m.AComprar > 0)
+                                            {
+                                                <span class="badge text-bg-danger">Sin proveedor</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge text-bg-success">Bodega</span>
+                                            }
+                                        </td>
+                                        <td class="text-end pe-4">$@m.Subtotal.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            @if (!r.Productos.Any())
+            {
+                <div class="tarjeta text-center subtitulo py-5">Agrega un producto para ver el cálculo.</div>
+            }
+        }
+        else
+        {
+            @* aprobada o rechazada: muestro lo que quedo guardado *@
+            <div class="tarjeta p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 tabla">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio unitario</th>
+                                <th class="text-end pe-4">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var d in Model.Detalles)
+                            {
+                                <tr>
+                                    <td class="ps-4">@d.Producto?.Nombre</td>
+                                    <td class="text-center">@d.Cantidad</td>
+                                    <td class="text-end">$@d.PrecioUnitario.ToString("N2")</td>
+                                    <td class="text-end pe-4">$@((d.PrecioUnitario * d.Cantidad).ToString("N2"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+
+    @* ========== derecha: resumen del calculo ========== *@
+    <div class="col-lg-4 d-flex flex-column gap-4">
+        <div class="tarjeta">
+            <h2 class="h6 fw-semibold mb-3"><i class="bi bi-calculator me-1"></i>Resumen</h2>
+            @if (esBorrador)
+            {
+                <dl class="row mb-0 small">
+                    <dt class="col-7 fw-normal">Costo de materiales</dt><dd class="col-5 text-end">$@r!.Costo.ToString("N2")</dd>
+                    <dt class="col-7 fw-normal">Margen (@r.MargenPct.ToString("0.##") %)</dt><dd class="col-5 text-end">$@r.ValorMargen.ToString("N2")</dd>
+                    <dt class="col-7">Subtotal</dt><dd class="col-5 text-end fw-semibold">$@r.Subtotal.ToString("N2")</dd>
+                    <dt class="col-7 fw-normal">IVA (@r.IvaPct.ToString("0.##") %)</dt><dd class="col-5 text-end">$@r.ValorIva.ToString("N2")</dd>
+                </dl>
+                <hr />
+                <div class="d-flex justify-content-between align-items-end">
+                    <span class="subtitulo">Precio sugerido</span>
+                    <span class="panel-numero">$@r.Total.ToString("N2")</span>
+                </div>
+                <hr />
+                <dl class="row mb-0 small">
+                    <dt class="col-7 fw-normal">Plazo de entrega</dt>
+                    <dd class="col-5 text-end">@(r.PlazoDias == 0 ? "Inmediato" : r.PlazoDias + " días")</dd>
+                    <dt class="col-7 fw-normal">Comisión (@r.ComisionPct.ToString("0.##") %)</dt>
+                    <dd class="col-5 text-end">$@r.Comision.ToString("N2")</dd>
+                </dl>
+            }
+            else
+            {
+                <dl class="row mb-0 small">
+                    <dt class="col-7 fw-normal">Costo de materiales</dt><dd class="col-5 text-end">$@Model.Costo.ToString("N2")</dd>
+                    <dt class="col-7">Subtotal (sin IVA)</dt><dd class="col-5 text-end fw-semibold">$@Model.Subtotal.ToString("N2")</dd>
+                    <dt class="col-7 fw-normal">IVA</dt><dd class="col-5 text-end">$@((Model.Total - Model.Subtotal).ToString("N2"))</dd>
+                </dl>
+                <hr />
+                <div class="d-flex justify-content-between align-items-end">
+                    <span class="subtitulo">Total</span>
+                    <span class="panel-numero">$@Model.Total.ToString("N2")</span>
+                </div>
+                @if (Model.Estado == EstadoCotizacion.Aprobada)
+                {
+                    <hr />
+                    <dl class="row mb-0 small">
+                        <dt class="col-7 fw-normal">Plazo de entrega</dt>
+                        <dd class="col-5 text-end">@(Model.PlazoDias == 0 ? "Inmediato" : Model.PlazoDias + " días")</dd>
+                        <dt class="col-7 fw-normal">Comisión de @Model.Vendedor?.Nombre</dt>
+                        <dd class="col-5 text-end">$@Model.Comision.ToString("N2")</dd>
+                    </dl>
+                }
+            }
+        </div>
+
+        @if (esBorrador)
+        {
+            @* lo que falta para poder aprobar *@
+            @if (r!.Problemas.Any())
+            {
+                <div class="alert alert-warning mb-0">
+                    <b><i class="bi bi-exclamation-triangle me-1"></i>Falta para aprobar:</b>
+                    <ul class="mb-0 mt-1 small">
+                        @foreach (var problema in r.Problemas)
+                        {
+                            <li>@problema</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="tarjeta">
+                <form asp-action="Aprobar" asp-route-id="@Model.Id" method="post" class="mb-2"
+                      onsubmit="return confirm('Al aprobar se descuenta el stock de bodega. ¿Continuar?');">
+                    <button class="btn btn-app w-100" @(r.Problemas.Any() ? "disabled" : "")><i class="bi bi-check-lg me-1"></i>Aprobar cotización</button>
+                </form>
+                <form asp-action="Rechazar" asp-route-id="@Model.Id" method="post">
+                    <button class="btn btn-outline-danger w-100"><i class="bi bi-x-lg me-1"></i>Rechazar</button>
+                </form>
+                <p class="subtitulo small mt-2 mb-0">Al aprobar se descuenta de bodega lo que se usa y queda registrada la comisión del vendedor.</p>
+            </div>
+        }
+    </div>
+</div>

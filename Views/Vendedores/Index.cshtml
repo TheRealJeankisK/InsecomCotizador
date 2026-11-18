@@ -18,6 +18,8 @@
                 <tr>
                     <th class="ps-4">Nombre</th>
                     <th>Correo</th>
+                    <th class="text-center">Aprobadas</th>
+                    <th class="text-end">Comisión ganada</th>
                     <th class="text-end pe-4">Acciones</th>
                 </tr>
             </thead>
@@ -27,6 +29,8 @@
                     <tr>
                         <td class="ps-4 fw-semibold">@v.Nombre</td>
                         <td>@v.Correo</td>
+                        <td class="text-center">@v.Cotizaciones.Count(c => c.Estado == EstadoCotizacion.Aprobada)</td>
+                        <td class="text-end fw-semibold">$@v.Cotizaciones.Where(c => c.Estado == EstadoCotizacion.Aprobada).Sum(c => c.Comision).ToString("N2")</td>
                         <td class="text-end pe-4 text-nowrap">
                             <a asp-action="Editar" asp-route-id="@v.Id" class="btn btn-sm btn-outline-primary" title="Editar"><i class="bi bi-pencil"></i></a>
                             <partial name="_BotonEliminar" model="@(("Eliminar", v.Id, v.Nombre))" />
@@ -35,7 +39,7 @@
                 }
                 @if (!Model.Any())
                 {
-                    <tr><td colspan="3" class="text-center subtitulo py-4">No hay vendedores registrados.</td></tr>
+                    <tr><td colspan="5" class="text-center subtitulo py-4">No hay vendedores registrados.</td></tr>
                 }
             </tbody>
         </table>

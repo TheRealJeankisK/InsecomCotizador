@@ -17,7 +17,8 @@ public class VendedoresController : Controller
 
     public async Task<IActionResult> Index()
     {
-        return View(await _db.Vendedores.OrderBy(v => v.Nombre).ToListAsync());
+        // traigo sus cotizaciones para sumar la comision de las aprobadas
+        return View(await _db.Vendedores.Include(v => v.Cotizaciones).OrderBy(v => v.Nombre).ToListAsync());
     }
 
     public IActionResult Crear() => View("Formulario", new Vendedor());

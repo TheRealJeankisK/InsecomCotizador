@@ -1,0 +1,65 @@
+@model List<Cotizacion>
+@{
+    ViewData["Title"] = "Cotizaciones";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div>
+        <h1 class="h3 titulo-pagina">Cotizaciones</h1>
+        <span class="subtitulo">El sistema calcula el precio sugerido con el stock, los proveedores, el margen y el IVA.</span>
+    </div>
+    <a asp-action="Crear" class="btn btn-app"><i class="bi bi-plus-lg me-1"></i>Nueva cotización</a>
+</div>
+
+<div class="tarjeta p-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 tabla">
+            <thead>
+                <tr>
+                    <th class="ps-4">#</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th>Fecha</th>
+                    <th class="text-center">Productos</th>
+                    <th>Estado</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-end pe-4">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td class="ps-4">@c.Id</td>
+                        <td class="fw-semibold">@c.Cliente?.RazonSocial</td>
+                        <td>@c.Vendedor?.Nombre</td>
+                        <td>@c.Fecha.ToString("dd/MM/yyyy")</td>
+                        <td class="text-center">@c.Detalles.Count</td>
+                        <td><partial name="_Estado" model="c.Estado" /></td>
+                        <td class="text-end">
+                            @if (c.Estado == EstadoCotizacion.Aprobada)
+                            {
+                                <span class="fw-semibold">$@c.Total.ToString("N2")</span>
+                            }
+                            else
+                            {
+                                <span class="subtitulo">—</span>
+                            }
+                        </td>
+                        <td class="text-end pe-4 text-nowrap">
+                            <a asp-action="Detalle" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary" title="Abrir"><i class="bi bi-eye"></i></a>
+                            @if (c.Estado != EstadoCotizacion.Aprobada)
+                            {
+                                <partial name="_BotonEliminar" model="@(("Eliminar", c.Id, "la cotización #" + c.Id))" />
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr><td colspan="8" class="text-center subtitulo py-4">No hay cotizaciones todavía.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

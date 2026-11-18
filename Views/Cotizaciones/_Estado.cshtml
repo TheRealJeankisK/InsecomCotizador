@@ -1,0 +1,8 @@
+@model EstadoCotizacion
+@* etiqueta de color segun el estado *@
+@{
+    string color = "text-bg-secondary";
+    if (Model == EstadoCotizacion.Aprobada) color = "text-bg-success";
+    if (Model == EstadoCotizacion.Rechazada) color = "text-bg-danger";
+}
+<span class="badge @color">@Model</span>

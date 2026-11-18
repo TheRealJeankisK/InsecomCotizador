@@ -2,7 +2,7 @@
 
 Proyecto de la materia **Ingeniería Web (ISWZ3101)** de la UDLA: sistema de gestión comercial para **INSECOM S.A.** (Quito), empresa que fabrica tableros eléctricos y envolventes metálicos NEMA.
 
-El **core** (Progreso 2) calcula el precio sugerido de una cotización a partir de la receta de materiales de cada producto, el inventario y los precios de los proveedores, y luego la comisión del vendedor. Esta primera parte es la **administración** que alimenta ese cálculo.
+El **core** (Progreso 2) calcula el precio sugerido de una cotización a partir de la receta de materiales de cada producto, el inventario y los precios de los proveedores, y luego la comisión del vendedor. La **administración** (Progreso 1) alimenta todas las tablas que usa ese cálculo.
 
 **Video (Tarea 8 – Administración MVC):** https://www.youtube.com/watch?v=4zDrhHZbS2I
 
@@ -40,6 +40,22 @@ También se valida en el back que la categoría de un material y el material de 
 ## Dropdowns en cascada (claves foráneas)
 
 Ninguna clave foránea se escribe a mano: todas se eligen con un dropdown. En la **receta** de un producto se elige primero la **categoría** y, con `fetch`, se pide al controlador (`ProductosController.MaterialesPorCategoria`, devuelve JSON) la lista de materiales de esa categoría para llenar el segundo dropdown.
+
+## El core: cálculo de la cotización (Progreso 2)
+
+Está en `CotizacionesController.Calcular`, con `foreach` e `if` explícitos. Cruza 11 tablas: Cotizacion, DetalleCotizacion, Cliente, Vendedor, Producto, ProductoMaterial, Material, PrecioProveedor, Proveedor, Configuracion y ReglaComision.
+
+1. Se crea la cotización eligiendo **cliente** y **vendedor**, y se agregan productos con su cantidad.
+2. **Por cada producto** → **por cada material de su receta**: se calcula cuánto hace falta (cantidad por unidad × unidades).
+   - **Si alcanza el stock** de bodega, se usa con el costo de bodega.
+   - **Si no**, se usa lo que haya y el resto se compra al **proveedor más barato** de ese material. El **plazo** de la cotización es el mayor tiempo de entrega de lo que se compra.
+   - Si dos productos usan el mismo material, el stock se va descontando mientras se recorre (no se cuenta dos veces).
+   - Si falta un material y ningún proveedor lo vende, la cotización no se puede aprobar.
+3. **Costo + margen = subtotal; subtotal + IVA = precio sugerido** (margen e IVA salen de Configuración).
+4. **Comisión del vendedor:** se busca en qué rango de las reglas cae el subtotal y se aplica ese porcentaje.
+5. **Al aprobar**, se vuelve a calcular, se **descuenta el stock** de bodega y se guardan el precio de cada producto, el total, el plazo y la comisión. La lista de vendedores muestra la comisión ganada en cotizaciones aprobadas.
+
+Mientras está en borrador, la pantalla muestra el desglose de cada material: cuánto sale de bodega, cuánto se compra, a qué proveedor y a qué precio.
 
 ## Tablas
 
