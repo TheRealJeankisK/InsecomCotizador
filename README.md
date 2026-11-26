@@ -8,6 +8,8 @@ Hoy, cotizar un tablero implica revisar a mano qué materiales lleva, cuánto ha
 |---|---|
 | **Demo en línea** | https://insecomcotizador.onrender.com (plan gratis de Render: la primera carga tarda ~1 min si estaba dormida, y los datos se borran al reiniciar) |
 | **Video Tarea 8 (administración)** | https://www.youtube.com/watch?v=4zDrhHZbS2I |
+| **Credenciales demo (Render)** | Usuario: `amdin` · Contraseña: `123456780` |
+| **Credenciales en local** | Usuario: `admin` · Contraseña: `Admin123!` (las de `appsettings.json`) |
 
 ## Contenido
 
