@@ -84,20 +84,115 @@ Todo lo que usa el cálculo se registra desde la aplicación; nada se carga a ma
 
 ## 4. Modelo de datos
 
+Las 13 tablas con sus campos (PK = clave primaria, FK = clave foránea):
+
 ```mermaid
 erDiagram
     CLIENTE ||--o{ COTIZACION : pide
     VENDEDOR ||--o{ COTIZACION : hace
     COTIZACION ||--|{ DETALLECOTIZACION : tiene
     PRODUCTO ||--o{ DETALLECOTIZACION : "se cotiza en"
-    PRODUCTO ||--o{ PRODUCTOMATERIAL : "receta"
+    PRODUCTO ||--o{ PRODUCTOMATERIAL : "tiene receta"
     MATERIAL ||--o{ PRODUCTOMATERIAL : "se usa en"
     CATEGORIA ||--o{ MATERIAL : agrupa
     MATERIAL ||--o{ PRECIOPROVEEDOR : "tiene precios"
     PROVEEDOR ||--o{ PRECIOPROVEEDOR : vende
+
+    CLIENTE {
+        int Id PK
+        string RazonSocial
+        string RUC "validado en el back"
+        string Sector
+        string Contacto
+        string Telefono
+        string Correo
+    }
+    VENDEDOR {
+        int Id PK
+        string Nombre
+        string Correo
+    }
+    COTIZACION {
+        int Id PK
+        int ClienteId FK
+        int VendedorId FK
+        datetime Fecha
+        enum Estado "Borrador, Aprobada, Rechazada"
+        decimal Costo
+        decimal Subtotal
+        decimal Total
+        decimal Comision
+        int PlazoDias
+    }
+    DETALLECOTIZACION {
+        int Id PK
+        int CotizacionId FK
+        int ProductoId FK
+        int Cantidad
+        decimal PrecioUnitario "se guarda al aprobar"
+    }
+    PRODUCTO {
+        int Id PK
+        string Nombre
+        string Tipo
+        string Descripcion
+    }
+    PRODUCTOMATERIAL {
+        int Id PK
+        int ProductoId FK
+        int MaterialId FK
+        decimal CantidadPorUnidad
+    }
+    MATERIAL {
+        int Id PK
+        string Nombre
+        int CategoriaId FK
+        string Unidad
+        decimal Stock
+        decimal CostoUnitario "costo en bodega"
+    }
+    CATEGORIA {
+        int Id PK
+        string Nombre
+    }
+    PRECIOPROVEEDOR {
+        int Id PK
+        int ProveedorId FK
+        int MaterialId FK
+        decimal Precio
+        int DiasEntrega
+    }
+    PROVEEDOR {
+        int Id PK
+        string Nombre
+        string Contacto
+    }
 ```
 
-Tablas sueltas que usa el cálculo: **Configuracion** (margen e IVA, una sola fila) y **ReglaComision** (rangos de monto y porcentaje). **Usuario** guarda el acceso al sistema.
+Tablas sueltas (sin relaciones):
+
+```mermaid
+erDiagram
+    CONFIGURACION {
+        int Id PK
+        decimal Margen "porcentaje, ej. 30"
+        decimal IVA "porcentaje, ej. 15"
+    }
+    REGLACOMISION {
+        int Id PK
+        decimal MontoMinimo
+        decimal MontoMaximo "vacio = sin tope"
+        decimal Porcentaje
+    }
+    USUARIO {
+        int Id PK
+        string NombreUsuario
+        string ContrasenaHash "PBKDF2"
+        string Rol
+    }
+```
+
+**Configuracion** guarda el margen y el IVA (una sola fila), **ReglaComision** los rangos de comisión y **Usuario** el acceso al sistema. Las dos primeras las usa el cálculo del core.
 
 ## 5. Dónde está cada cosa en el código
 
